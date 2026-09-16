@@ -14,10 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Display the default welcome page.
-Route::get('/', function () {
-    return view('welcome');
-});
+// Display the product inventory as the application landing page.
+Route::get('/', [ProductController::class, 'index']);
 
 // Serve the product page or its JSON listing.
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
