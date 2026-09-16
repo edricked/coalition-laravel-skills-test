@@ -32,7 +32,7 @@ class ProductEndpointsTest extends TestCase
     public function test_page_responds_with_an_empty_total(): void
     {
         $this->get('/products')->assertOk()->assertViewIs('products.index')
-            ->assertViewHas('grandTotalCents', 0);
+            ->assertViewHas('grand_total_cents', 0);
     }
 
     public function test_store_generates_id_timestamp_and_total_and_returns_201(): void
@@ -42,9 +42,9 @@ class ProductEndpointsTest extends TestCase
         $response = $this->postJson('/products', [
             'name' => 'Notebook', 'quantity' => '3', 'price' => '12.50',
         ])->assertCreated()
-            ->assertJsonPath('priceCents', 1250)
-            ->assertJsonPath('totalCents', 3750)
-            ->assertJsonPath('submittedAt', '2026-09-16T00:00:00.000000Z');
+            ->assertJsonPath('price_cents', 1250)
+            ->assertJsonPath('total_cents', 3750)
+            ->assertJsonPath('submitted_at', '2026-09-16T00:00:00.000000Z');
 
         $this->assertTrue(Str::isUuid($response->json('id')));
         $this->getJson('/products')->assertOk()
@@ -61,7 +61,7 @@ class ProductEndpointsTest extends TestCase
         $this->getJson('/products')->assertOk()
             ->assertJsonPath('products.0.name', 'Pen')
             ->assertJsonPath('products.1.name', 'Notebook')
-            ->assertJsonPath('grandTotalCents', 4000);
+            ->assertJsonPath('grand_total_cents', 4000);
     }
 
     public function test_invalid_fields_return_422_and_are_not_saved(): void

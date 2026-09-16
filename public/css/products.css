@@ -1,0 +1,11 @@
+main.container {
+    max-width: 1140px;
+}
+
+#message {
+    min-height: 1.5rem;
+}
+
+td:first-child {
+    overflow-wrap: anywhere;
+}

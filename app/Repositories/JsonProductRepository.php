@@ -9,19 +9,28 @@ use RuntimeException;
 
 class JsonProductRepository implements ProductRepositoryInterface
 {
+    /**
+     * Set the path of the product JSON file.
+     */
     public function __construct(private readonly string $path) {}
 
+    /**
+     * Read stored products in submission order, oldest first.
+     */
     public function all(): array
     {
         return $this->withLock(LOCK_SH, function (): array {
             $products = $this->readProducts();
 
-            usort($products, fn (array $first, array $second) => strcmp($first['submittedAt'], $second['submittedAt']));
+            usort($products, fn (array $first, array $second) => strcmp($first['submitted_at'], $second['submitted_at']));
 
             return $products;
         });
     }
 
+    /**
+     * Create or replace a product while preserving its submission time.
+     */
     public function save(array $product, bool $update = false): void
     {
         $this->validateProduct($product);
@@ -34,7 +43,7 @@ class JsonProductRepository implements ProductRepositoryInterface
                     continue;
                 }
 
-                $product['submittedAt'] = $existingProduct['submittedAt'];
+                $product['submitted_at'] = $existingProduct['submitted_at'];
                 $products[$index] = $product;
                 $this->writeProducts($products);
 
@@ -50,6 +59,9 @@ class JsonProductRepository implements ProductRepositoryInterface
         });
     }
 
+    /**
+     * Read and validate JSON records, treating missing or empty files as empty lists.
+     */
     private function readProducts(): array
     {
         if (! File::exists($this->path)) {
@@ -84,21 +96,27 @@ class JsonProductRepository implements ProductRepositoryInterface
         return $products;
     }
 
+    /**
+     * Check the required fields and types of a stored product.
+     */
     private function validateProduct(array $product): void
     {
-        foreach (['id', 'name', 'submittedAt'] as $field) {
+        foreach (['id', 'name', 'submitted_at'] as $field) {
             if (! is_string($product[$field] ?? null) || trim($product[$field]) === '') {
                 throw new RuntimeException("Product field {$field} must be a non-empty string.");
             }
         }
 
-        foreach (['quantity', 'priceCents'] as $field) {
+        foreach (['quantity', 'price_cents'] as $field) {
             if (! is_int($product[$field] ?? null) || $product[$field] < 0) {
                 throw new RuntimeException("Product field {$field} must be a non-negative integer.");
             }
         }
     }
 
+    /**
+     * Write valid JSON to a temporary file before replacing the current file.
+     */
     private function writeProducts(array $products): void
     {
         $json = json_encode($products, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
@@ -123,6 +141,9 @@ class JsonProductRepository implements ProductRepositoryInterface
         }
     }
 
+    /**
+     * Run a storage operation under a file lock and release it afterward.
+     */
     private function withLock(int $mode, callable $callback): mixed
     {
         File::ensureDirectoryExists(dirname($this->path), 0700);
