@@ -14,9 +14,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Display the default welcome page.
 Route::get('/', function () {
     return view('welcome');
 });
 
+// Serve the product page or its JSON listing.
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+// Validate and save a new product.
 Route::post('/products', [ProductController::class, 'store'])->name('products.store');
